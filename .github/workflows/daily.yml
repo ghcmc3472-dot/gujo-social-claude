@@ -64,7 +64,7 @@ jobs:
           mkdir -p /tmp/out && cp posts/daily/*.mp4 dryrun/out/* /tmp/out/ 2>/dev/null || true
           git config user.name "gujo-bot"
           git config user.email "gujo-bot@users.noreply.github.com"
-          git checkout -q --orphan dryrun-out && git rm -rqf . && cp /tmp/out/* . 2>/dev/null || true
+          git checkout -q --orphan dryrun-out && git rm -rqf . && git clean -fdxq && cp /tmp/out/* . 2>/dev/null || true
           git add -A && git commit -qm "시험 렌더" && git push -qf origin dryrun-out
       - name: 시험 영상 받기
         if: ${{ github.event.inputs.dry_run == 'true' }}
