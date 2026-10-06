@@ -46,8 +46,12 @@
     }
    ]
   },
-  "music_trending": [],
-  "music_piano": []
+  "music_trending": {
+   "raw": "{\"audio\": [{\"audio_id\": \"8433157620064892\", \"duration_in_ms\": 130710, \"title\": \"Family\", \"cover_artwork_thumbnail_uri\": \"https://scontent-sjc3-1.xx.fbcdn.net/v/t39.30808-1/464637279_8517145801738717_7103579135985816589_n.jpg?stp=dst-jpg_s130x130_tt6&_nc_cat=1&ccb=1-7&_nc_sid=68a4df&_nc_ohc=pYhw6fA-UOkQ7kNvwHhLz_F&_nc_oc=AdqYYMreioSlzpFDBRMaYK9N6g4TSZNa7MS9W45LsL6T3OGzSlRLGqzwMiObIySdDxo&_nc_zt=24&_nc_ht=scontent-sjc3-1.xx&edm=AOP_XFkEAAAA&_nc_gid=m32X5xpFNL98SWM-lYiULA&oh=00_AQO8tTq_d2VvlMYGx1jptJqRZtjfdgSPHenBmnr6v_6XOg&oe=6ACAC793\", \"display_artist\": \"Dhruv Goel\", \"audio_type\": \"music\", \"dow"
+  },
+  "music_piano": {
+   "raw": "{\"audio\": [{\"audio_id\": \"1337624016597307\", \"duration_in_ms\": 145895, \"title\": \"Piano for Brian\", \"cover_artwork_thumbnail_uri\": \"https://scontent-sjc3-1.xx.fbcdn.net/v/t39.30808-1/463254674_8848662205194754_7278824932744620191_n.jpg?stp=c0.0.1365.1365a_dst-jpg_s130x130_tt6&_nc_cat=1&ccb=1-7&_nc_sid=68a4df&_nc_ohc=Ilg2mXjFKqgQ7kNvwE3MhXY&_nc_oc=Adp5I9FK-K2Rx44ZY1eQ_ierZ8x7qpB6SPjOGnZSC_zN_XMfvBpgVzu7udQJs_ExkTI&_nc_zt=24&_nc_ht=scontent-sjc3-1.xx&edm=AOP_XFkEAAAA&_nc_gid=CV1s7J13vp_I2r-7bJTOFA&oh=00_AQN0tb0SQv9uMfX6jh6BjUID5Vp3L3uh0Nga-zd6aDQY0w&oe=6ACAC023\", \"display_artist\": \"Brent Bourgeois"
+  }
  },
  "threads": {
   "id": "39261374160142630",
