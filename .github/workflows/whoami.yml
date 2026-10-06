@@ -1,0 +1,27 @@
+name: 계정 확인
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/whoami.yml', 'scripts/whoami.py']
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 확인
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+        run: python3 scripts/whoami.py
+      - name: 결과 저장
+        run: |
+          git config user.name "gujo-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add state/whoami.json
+          git commit -m "계정 확인 결과" || exit 0
+          git pull --rebase && git push
