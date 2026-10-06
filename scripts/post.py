@@ -70,7 +70,11 @@ def find_music(tok, queries, avoid=(), min_ms=25000):
     base, uid = ig_ctx(tok)
     for q in queries:
         try:
-            rows = api('GET', f'{base}/ig_audio', {'audio_type': 'music', 'user_id': uid, 'search_query': q, 'access_token': tok}).get('data', [])
+            params = {'audio_type': 'music', 'user_id': uid, 'access_token': tok}
+            if q:  # 검색어가 비어 있으면 지금 인기 음악
+                params['search_query'] = q
+            res = api('GET', 'https://graph.facebook.com/v26.0/ig_audio', params)
+            rows = res.get('audio') or res.get('data') or []
         except Exception as e:
             print(f'  음악 검색 실패({q}): {e}')
             continue
