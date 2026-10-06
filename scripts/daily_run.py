@@ -106,15 +106,15 @@ def check(items, recent):
 
 def caption(facts, items):
     d = date.fromisoformat(facts['날짜'])
-    tags = ' '.join(f'#{daily.ANIMAL[b]}띠' for b in daily.Z)
     return (f'오늘 내 띠는 뭘 하면 될까? 👆 영상에서 확인하세요\n'
+            '가족·친구 띠도 다 들어 있어요. 보내 주세요 💌\n'
             f'{d.month}월 {d.day}일 {facts["요일"]}요일, {facts["일진 읽기"]}\n\n'
             '띠 하나로는 부족합니다.\n\n'
             'GUJO. 현실의 나와 사주의 운명을 함께 계산합니다.\n'
             '궁금한 운명, GUJO가 답합니다.\n'
             '평생 한 번, GUJO. → gujo.kr (프로필 링크)\n\n'
             '(띠는 설날이 아니라 입춘, 2월 4일 무렵에 바뀝니다.)\n\n'
-            f'#오늘의운세 #띠별운세 {tags} #사주 #GUJO')
+            '#띠별운세 #오늘의운세 #사주 #운세 #GUJO')
 
 
 def main():
