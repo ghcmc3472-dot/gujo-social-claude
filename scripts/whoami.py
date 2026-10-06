@@ -56,3 +56,4 @@ if os.environ.get('CLAUDE_CODE_OAUTH_TOKEN') and shutil.which('claude'):
     out['claude'] = (p.stdout.strip() or p.stderr.strip())[:200]
     json.dump(out, open('state/whoami.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print('claude:', out['claude'])
+# 1791297893
