@@ -27,9 +27,11 @@ if ig:
         if uid:
             r['publish_limit'] = get(f'{FBG}/{uid}/content_publishing_limit?fields=quota_usage,config', ig)
             def songs(q=None):
-                u = f'{FBG}/ig_audio?audio_type=music&user_id={uid}' + (f'&search_query={urllib.parse.quote(q)}' if q else '')
+                u = f'https://graph.facebook.com/v26.0/ig_audio?audio_type=music&user_id={uid}' + (f'&search_query={urllib.parse.quote(q)}' if q else '')
                 d = get(u, ig)
-                return d if 'error' in d else [f"{x.get('title')} — {x.get('display_artist')} ({int(x.get('duration_in_ms') or 0)//1000}s)" for x in d.get('data', [])[:10]]
+                if 'error' in d or not d.get('data'):
+                    return {'raw': json.dumps(d, ensure_ascii=False)[:600]}
+                return [f"{x.get('title')} — {x.get('display_artist')} ({int(x.get('duration_in_ms') or 0)//1000}s)" for x in d.get('data', [])[:10]]
             r['music_trending'] = songs()
             r['music_piano'] = songs('piano')
         out['instagram'] = r
