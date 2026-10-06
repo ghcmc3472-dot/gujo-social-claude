@@ -1,0 +1,27 @@
+name: 토큰 연장
+
+# 인스타·스레드 장기 토큰은 60일 뒤 만료됩니다. 매달 1일과 15일에 연장합니다.
+# 비밀값 GH_PAT(이 저장소의 Secrets 쓰기 권한이 있는 GitHub 토큰)이 있어야 새 토큰을 저장할 수 있습니다.
+# GH_PAT이 없으면 이 작업은 건너뛰고, 50일마다 직접 새 토큰을 넣어 주셔야 합니다.
+
+on:
+  schedule:
+    - cron: '0 0 1,15 * *'
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 연장
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "GH_PAT 없음 - 건너뜀"; exit 0; fi
+          ig=$(curl -s "https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=$IG_TOKEN" | python3 -c "import sys,json;print(json.load(sys.stdin).get('access_token',''))")
+          th=$(curl -s "https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=$THREADS_TOKEN" | python3 -c "import sys,json;print(json.load(sys.stdin).get('access_token',''))")
+          [ -n "$ig" ] && echo "::add-mask::$ig" && gh secret set IG_TOKEN --repo "$REPO" --body "$ig" && echo "인스타 연장 완료" || echo "인스타 연장 실패"
+          [ -n "$th" ] && echo "::add-mask::$th" && gh secret set THREADS_TOKEN --repo "$REPO" --body "$th" && echo "스레드 연장 완료" || echo "스레드 연장 실패"

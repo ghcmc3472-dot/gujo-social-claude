@@ -1,0 +1,49 @@
+name: 자동 답글
+
+on:
+  schedule:
+    - cron: '15,45 * * * *'   # 30분마다 (게시 작업과 15분 엇갈리게)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '답만 써 보고 올리지 않기 (true/false)'
+        default: 'false'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: reply
+  cancel-in-progress: false
+
+jobs:
+  reply:
+    runs-on: ubuntu-latest
+    if: ${{ vars.AUTO_REPLY == 'on' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g @anthropic-ai/claude-code
+      - name: 답글
+        env:
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          REPLY_MODEL: ${{ vars.REPLY_MODEL }}
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            python scripts/reply.py --dry-run
+          else
+            python scripts/reply.py
+          fi
+      - name: 기록 저장
+        if: always()
+        run: |
+          git config user.name "gujo-bot"
+          git config user.email "gujo-bot@users.noreply.github.com"
+          git add state/replied.json 2>/dev/null || true
+          git diff --cached --quiet || (git commit -m "답글 기록" && git pull --rebase && git push)
