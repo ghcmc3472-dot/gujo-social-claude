@@ -1,12 +1,40 @@
 {
  "instagram": {
-  "type": "instagram-login",
-  "me": {
-   "user_id": "17841475836700261",
-   "username": "gujolab2026",
-   "account_type": "BUSINESS",
-   "id": "28936310386006329"
+  "type": "facebook-login",
+  "pages": {
+   "data": [
+    {
+     "name": "Gujo 연구소",
+     "instagram_business_account": {
+      "username": "gujolab2026",
+      "id": "17841475836700261"
+     },
+     "id": "1385841214617625"
+    }
+   ],
+   "paging": {
+    "cursors": {
+     "before": "QVFIVGRrNzNWZA0N5SDlJUDFwU0RuTmI5SlpCckt4MG0zd0E4UTdUZAHN1QVo4eDNxRE84UklVdFBJNHQxR0l6R3dpR3JxN09KY3BGaDNXTEhnT1U5Q1ZA3SzFR",
+     "after": "QVFIVGRrNzNWZA0N5SDlJUDFwU0RuTmI5SlpCckt4MG0zd0E4UTdUZAHN1QVo4eDNxRE84UklVdFBJNHQxR0l6R3dpR3JxN09KY3BGaDNXTEhnT1U5Q1ZA3SzFR"
+    }
+   }
   },
+  "expires_at": 1796481430,
+  "scopes": [
+   "ads_mcp_management",
+   "pages_show_list",
+   "ads_management",
+   "ads_read",
+   "business_management",
+   "instagram_basic",
+   "instagram_manage_comments",
+   "instagram_manage_insights",
+   "instagram_content_publish",
+   "instagram_manage_messages",
+   "pages_read_engagement",
+   "pages_manage_ads",
+   "public_profile"
+  ],
   "publish_limit": {
    "data": [
     {
@@ -17,6 +45,13 @@
      }
     }
    ]
-  }
- }
+  },
+  "music_trending": [],
+  "music_piano": []
+ },
+ "threads": {
+  "id": "39261374160142630",
+  "username": "gujolab2026"
+ },
+ "claude": "Failed to authenticate. API Error: 401 Invalid bearer token"
 }
