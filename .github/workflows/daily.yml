@@ -3,6 +3,8 @@ name: 띠별 오늘
 on:
   schedule:
     - cron: '40 21 * * *'   # 매일 한국 06:40에 만들기 시작 → 07:30 정각에 게시
+  push:
+    paths: ['dryrun/request.txt']   # 이 파일에 날짜를 적어 올리면 시험 렌더(게시 없음)
   workflow_dispatch:
     inputs:
       dry_run:
@@ -23,7 +25,7 @@ jobs:
   daily:
     runs-on: ubuntu-latest
     timeout-minutes: 100
-    if: ${{ vars.DAILY == 'on' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ vars.DAILY == 'on' || github.event_name != 'schedule' }}
     steps:
       - uses: actions/checkout@v4
       - name: 글꼴·도구
@@ -54,7 +56,16 @@ jobs:
           if [ -n "${{ github.event.inputs.date }}" ]; then ARGS="--date ${{ github.event.inputs.date }}"; fi
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then ARGS="$ARGS --now"; fi
+          if [ "${{ github.event_name }}" = "push" ]; then ARGS="--date $(head -1 dryrun/request.txt) --dry-run --now"; fi
           python scripts/daily_run.py $ARGS
+      - name: 시험 결과를 dryrun-out 가지에 올리기
+        if: ${{ always() && github.event_name == 'push' }}
+        run: |
+          mkdir -p /tmp/out && cp posts/daily/*.mp4 dryrun/out/* /tmp/out/ 2>/dev/null || true
+          git config user.name "gujo-bot"
+          git config user.email "gujo-bot@users.noreply.github.com"
+          git checkout -q --orphan dryrun-out && git rm -rqf . && cp /tmp/out/* . 2>/dev/null || true
+          git add -A && git commit -qm "시험 렌더" && git push -qf origin dryrun-out
       - name: 시험 영상 받기
         if: ${{ github.event.inputs.dry_run == 'true' }}
         uses: actions/upload-artifact@v4
@@ -62,7 +73,7 @@ jobs:
           name: daily-reel
           path: posts/daily/*.mp4
       - name: 기록 저장
-        if: always() && github.event.inputs.dry_run != 'true'
+        if: always() && github.event.inputs.dry_run != 'true' && github.event_name != 'push'
         run: |
           git config user.name "gujo-bot"
           git config user.email "gujo-bot@users.noreply.github.com"

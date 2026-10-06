@@ -19,7 +19,10 @@ from post import KST, post_instagram, post_threads, find_music  # noqa: E402
 DRY = '--dry-run' in sys.argv
 MODEL = os.environ.get('DAILY_MODEL') or 'opus'
 QUERIES = [q.strip() for q in (os.environ.get('DAILY_MUSIC_QUERIES') or
-           'calm piano,korean traditional,gayageum,ambient morning,lofi chill,acoustic morning').split(',') if q.strip()]
+           'meditation,zen,gayageum,guzheng,koto,asian ambient,bamboo flute,calm piano,ambient,peaceful morning').split(',') if q.strip()]
+MOOD = ('한지 위 먹으로 그린 수묵화 영상(산, 붓글씨, 띠 동물), 아침 7시 30분에 보는 30초 띠별 운세. '
+        '고요하고 단정한 동양적 분위기. 가사 없는 연주곡, 느리거나 중간 빠르기, 피아노·가야금·대금·고토·앰비언트 계열이 맞고 '
+        '댄스·록·힙합·파티·생일·코믹·효과음은 맞지 않는다.')
 HIST_P = os.path.join(ROOT, 'state', 'daily_history.json')
 JARGON = ['육합', '반합', '삼합', '원진', '형살', '비겁', '식상', '재성', '관성', '인성', '일진', '지지', '천간', '십성']
 TAGS = '#오늘의운세 #띠별운세 #사주 #명리 #일진 #운세 #GUJO'
@@ -48,6 +51,41 @@ def write_lines(facts, hist):
         except Exception as ex:
             last_err = str(ex); prompt += f'\n\n## 지난 출력의 문제\n{last_err}\n다시 지침대로만 쓰세요.'
     raise RuntimeError(f'문장 작성 실패: {last_err}')
+
+
+def pick_music(tok, avoid):
+    """분위기 검색어로 후보를 모으고, 영상 분위기에 가장 맞는 곡을 Claude가 고른다."""
+    from post import ig_ctx, api
+    if not tok.startswith('EAA'):
+        return None
+    _, uid = ig_ctx(tok)
+    cands, seen = [], set()
+    for q in QUERIES:
+        try:
+            res = api('GET', 'https://graph.facebook.com/v26.0/ig_audio',
+                      {'audio_type': 'music', 'user_id': uid, 'search_query': q, 'access_token': tok})
+        except Exception as e:
+            print(f'  음악 검색 실패({q}): {e}'); continue
+        for r in (res.get('audio') or res.get('data') or [])[:8]:
+            a = r.get('audio_id')
+            if a and a not in seen and a not in avoid and int(r.get('duration_in_ms') or 0) >= 30000:
+                seen.add(a)
+                cands.append({'audio_id': a, 'title': r.get('title'), 'artist': r.get('display_artist'),
+                              'sec': int(r.get('duration_in_ms') or 0) // 1000, 'query': q})
+    if not cands:
+        return None
+    listing = '\n'.join(f"{i}. {c['title']} — {c['artist']} ({c['sec']}초, 검색어: {c['query']})" for i, c in enumerate(cands))
+    prompt = (f'영상 분위기: {MOOD}\n\n후보 곡 목록:\n{listing}\n\n'
+              '제목·아티스트·검색어로 판단해 이 영상에 가장 어울리는 곡 하나의 번호만 JSON으로 답하세요. 예: {"pick": 3, "why": "한 줄 이유"}')
+    try:
+        r = subprocess.run(['claude', '-p', prompt, '--model', MODEL, '--output-format', 'text', '--max-turns', '1'],
+                           capture_output=True, text=True, timeout=300)
+        o = r.stdout; j = json.loads(o[o.find('{'):o.rfind('}') + 1])
+        c = cands[int(j['pick'])]; c['why'] = j.get('why')
+        return c
+    except Exception as e:
+        print(f'  곡 고르기 실패, 첫 후보 사용: {e}')
+        return cands[0]
 
 
 def check(items, recent):
@@ -99,7 +137,13 @@ def main():
     cap = caption(facts, items)
     json.dump(hist, open(HIST_P, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     if DRY:
-        print('\n[캡션]\n' + cap); return
+        used = [h.get('audio', {}).get('audio_id') for h in hist.values() if h.get('audio')]
+        music = pick_music(os.environ.get('IG_TOKEN', ''), used[-14:])
+        print('\n[캡션]\n' + cap + '\n\n[음악] ' + json.dumps(music, ensure_ascii=False))
+        od = os.path.join(ROOT, 'dryrun', 'out'); os.makedirs(od, exist_ok=True)
+        open(os.path.join(od, 'caption.txt'), 'w', encoding='utf-8').write(cap)
+        json.dump({'music': music, 'items': items}, open(os.path.join(od, 'result.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        return
 
     # 영상이 공개 주소에 올라가야 인스타·스레드가 가져갈 수 있으므로 먼저 커밋·푸시
     subprocess.run(['git', 'add', 'posts/daily', 'state/daily_history.json'], cwd=ROOT, check=True)
@@ -109,7 +153,7 @@ def main():
     subprocess.run(['git', 'push'], cwd=ROOT, check=True)
 
     used = [h.get('audio', {}).get('audio_id') for h in hist.values() if h.get('audio')]
-    music = find_music(os.environ['IG_TOKEN'], QUERIES[d.toordinal() % len(QUERIES):] + QUERIES, avoid=used[-14:])
+    music = pick_music(os.environ['IG_TOKEN'], used[-14:])
     if music: print(f'음악: {music["title"]} — {music["artist"]}'); rec['audio'] = music
     else: print('음악 없이 올림(페이스북 로그인 토큰이 아니거나 검색 결과 없음)')
 
